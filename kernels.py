@@ -4,7 +4,7 @@ import gpjax as gpx
 from gpjax.linalg import Dense, psd
 from gpjax.parameters import Real, Parameter, NonNegativeReal
 
-
+from .algorithms import Gram_XX_jit, Cross_XZ_jit, Diag_XX_jit
 
 
 class Custom_Compute_Engine(gpx.kernels.computations.AbstractKernelComputation):

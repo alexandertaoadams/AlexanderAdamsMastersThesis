@@ -1,6 +1,7 @@
-
-
-
+import jax
+import jax.numpy as jnp
+import gpjax as gpx
+from jax import jit
 
 
 def Gram_XX_full(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights):

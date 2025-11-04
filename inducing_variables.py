@@ -1,3 +1,6 @@
+import jax
+import jax.numpy as jnp
+
 def sample_inducing_sequences(sequences, num_inducing):
     '''Randomly samples inducing sequences from the input.
 

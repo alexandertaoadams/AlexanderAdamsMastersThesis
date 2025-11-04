@@ -4,7 +4,7 @@ import gpjax as gpx
 from jax import jit
 
 
-def Gram_XX_full(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights):
+def Gram_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights):
     """Computes the gram matrix on the input data and returns the levels separately.
     Args:
         X (X_batch_size, n_dimensions, n_timesteps) = (n_X, D, T): The time series data which we want to compute the gram matrix of.
@@ -84,9 +84,9 @@ def Gram_XX_full(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
     return jnp.tensordot(weights, L , axes=([0], [0]))
 
-Gram_XX_full_jit = jax.jit(Gram_XX_full, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
+Gram_XX_jit = jax.jit(Gram_XX, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
 
-def Cross_XZ_full(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights):
+def Cross_XZ(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights):
     """Computes the cross covariance matrix between the input data X and Z and returns the levels separately.
     Args:
         X (X_batch_size, n_dimensions, n_timesteps) = (n_X, D, T): Time series data 1.
@@ -171,9 +171,9 @@ def Cross_XZ_full(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial_le
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
     return jnp.tensordot(weights, L , axes=([0], [0]))
 
-Cross_XZ_full_jit = jax.jit(Cross_XZ_full, static_argnames=['X_batch_size', 'Z_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
+Cross_XZ_jit = jax.jit(Cross_XZ, static_argnames=['X_batch_size', 'Z_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
 
-def Diag_XX_full(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights):
+def Diag_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights):
     """Computes just the diagonal elements of the Gram matrix of the input data and returns the levels separately.
     Args:
         X (X_batch_size, n_dimensions, n_timesteps) = (n_X, D, T): Time series data.
@@ -252,4 +252,4 @@ def Diag_XX_full(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
     return jnp.tensordot(weights, L , axes=([0], [0]))
 
-Diag_XX_full_jit = jax.jit(Diag_XX_full, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
+Diag_XX_jit = jax.jit(Diag_XX, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])

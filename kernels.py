@@ -14,7 +14,7 @@ class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
         lengthscales = kernel.lengthscales
         amplitude = kernel.amplitude
         weights = kernel.weights
-        return Gram_XX_full_jit(
+        return Gram_XX_jit(
             X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, amplitude.value, weights.value
             )
 
@@ -22,7 +22,7 @@ class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
         lengthscales = kernel.lengthscales
         amplitude = kernel.amplitude
         weights = kernel.weights
-        return Cross_XZ_full_jit(
+        return Cross_XZ_jit(
             X, Z, X_size, Z_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, amplitude.value, weights.value
             )
 
@@ -30,7 +30,7 @@ class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
         lengthscales = kernel.lengthscales
         amplitude = kernel.amplitude
         weights = kernel.weights
-        return Diag_XX_full_jit(
+        return Diag_XX_jit(
             X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, amplitude.value, weights.value
             )
 

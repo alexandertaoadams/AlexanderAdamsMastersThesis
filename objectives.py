@@ -42,7 +42,7 @@ def collapsed_elbo_bernoulli(variational_family, data):
 
     # Compute the kl divergence, using A and Mu
     q_inducing = GaussianDistribution(jnp.atleast_1d(mu.squeeze()), scale=psd(Dense(A)))
-    p_inducing = GaussianDistribution(jnp.atleast_1d(mean_function(Z).squeeze()), scale=psd(Dense(Kmm)))
+    p_inducing = GaussianDistribution(jnp.atleast_1d(mean_function(z).squeeze()), scale=psd(Dense(Kmm)))
     kl = q_inducing.kl_divergence(p_inducing)
 
     # Compute A_tilde

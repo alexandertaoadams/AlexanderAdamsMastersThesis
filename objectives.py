@@ -1,11 +1,12 @@
 import jax
 import jax.numpy as jnp
 import gpjax as gpx
+from jax import vmap
 from gpjax.linalg import Dense, psd
 from gpjax.linalg.utils import add_jitter
 from gpjax.linalg.operations import lower_cholesky, solve
-
-
+from gpjax.distributions import GaussianDistribution
+from gpjax.distributions import _kl_divergence as kl_divergence
 
 
 def collapsed_elbo_bernoulli(variational_family, data):

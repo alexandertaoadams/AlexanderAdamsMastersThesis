@@ -9,9 +9,6 @@ def display_parameters(model):
     amplitude = model.posterior.prior.kernel.amplitude.value
     weights = model.posterior.prior.kernel.weights.value
 
-    def to_numpy(x):
-        return jnp.array(x).tolist() if isinstance(x, jnp.ndarray) else x
-
     data = [
         ["Lengthscales", len(lengthscales), to_numpy(lengthscales)],
         ["Amplitude", len(amplitude), to_numpy(amplitude)],

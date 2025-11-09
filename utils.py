@@ -3,7 +3,24 @@ import pandas as pd
 import sklearn.metrics as skm
 
 
+def display_parameters(model):
+  
+    lengthscales = model.posterior.prior.kernel.lengthscales.value
+    amplitude = model.posterior.prior.kernel.amplitude.value
+    weights = model.posterior.prior.kernel.weights.value
 
+    def to_numpy(x):
+        return jnp.array(x).tolist() if isinstance(x, jnp.ndarray) else x
+
+    data = [
+        ["Lengthscales", len(lengthscales), to_numpy(lengthscales)],
+        ["Amplitude", len(amplitude), to_numpy(amplitude)],
+        ["Weights", len(weights), to_numpy(weights)],
+    ]
+
+
+    df = pd.DataFrame(data, columns=["Parameter", "Count", "Values"])
+    return df
 
 def display_results(pred_labels, true_labels):
 

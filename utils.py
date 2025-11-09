@@ -34,9 +34,9 @@ def display_results(pred_labels, true_labels):
 
     data = {
         "Metric": [
-            "Total samples",
-            "Total neg",
-            "Total pos",
+            "Test Size",
+            "Negative Samples",
+            "Postive Samples",
             "MCC",
             "F1 score",
             "Precision",

@@ -10,9 +10,9 @@ def display_parameters(model):
     weights = model.posterior.prior.kernel.weights.value
 
     data = [
-        ["Lengthscales", len(lengthscales), to_numpy(lengthscales)],
-        ["Amplitude", len(amplitude), to_numpy(amplitude)],
-        ["Weights", len(weights), to_numpy(weights)],
+        ["Lengthscales", len(lengthscales), lengthscales],
+        ["Amplitude", len(amplitude), amplitude],
+        ["Weights", len(weights), weights],
     ]
 
 

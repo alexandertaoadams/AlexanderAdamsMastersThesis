@@ -5,7 +5,7 @@ import pandas as pd
 import sklearn.metrics as skm
 
 
-def normalise(data, eps=1e-12):
+def normalise(data, eps=1e-9):
     """
     Normalises time series data so that each dimension has global zero mean and unit variance,
     across all samples and time steps.

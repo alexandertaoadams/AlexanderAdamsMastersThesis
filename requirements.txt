@@ -3,6 +3,6 @@ jax==0.7.2
 gpjax==0.13.3
 optax==0.2.6
 pandas==2.2.2
-sktime=0.39.0
-matplotlib=3.10.0
-sns=0.13.2
+sktime==0.39.0
+matplotlib==3.10.0
+sns==0.13.2

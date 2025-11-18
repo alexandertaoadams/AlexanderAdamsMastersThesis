@@ -1,6 +1,30 @@
 import numpy as np
+import jax 
+import jax.numpy as jnp
 import pandas as pd
 import sklearn.metrics as skm
+
+
+def normalise(data, eps=1e-12):
+    """
+    Normalizes time series data so that each dimension has global zero mean and unit variance,
+    across all samples and time steps.
+
+    Args:
+        data (np.ndarray): Array of shape (n_sequences, n_dims, seq_length)
+        eps (float): Small constant to avoid division by zero
+
+    Returns:
+        np.ndarray: Normalized data of the same shape
+    """
+    # Compute mean and std across all series and timesteps, for each dimension
+    mean = data.mean(axis=(0, 2), keepdims=True)  # shape: (1, dims, 1)
+    std = data.std(axis=(0, 2), keepdims=True)    # shape: (1, dims, 1)
+
+    # Normalize by dimension
+    normalized_data = (data - mean) / (std + eps)
+
+    return normalized_data, mean, std
 
 
 def display_parameters(model):

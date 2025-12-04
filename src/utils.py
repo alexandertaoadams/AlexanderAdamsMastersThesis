@@ -17,13 +17,9 @@ def normalise(data, eps=1e-12):
     Returns:
         np.ndarray: Normalised data of the same shape
     """
-    # Compute mean and std across all series and timesteps, for each dimension
-    mean = data.mean(axis=(0, 2), keepdims=True)  # shape: (1, dims, 1)
-    std = data.std(axis=(0, 2), keepdims=True)    # shape: (1, dims, 1)
-
-    # Normalise by dimension
+    mean = data.mean(axis=(0, 2), keepdims=True)  
+    std = data.std(axis=(0, 2), keepdims=True)    
     normalised_data = (data - mean) / (std + eps)
-
     return normalised_data, mean, std
 
 

@@ -6,8 +6,7 @@ import sklearn.metrics as skm
 
 
 def normalise(data, eps=1e-12):
-    """
-    Normalises time series data so that each dimension has global zero mean and unit variance,
+    """Normalises time series data so that each dimension has global zero mean and unit variance,
     across all samples and time steps.
 
     Args:
@@ -15,7 +14,7 @@ def normalise(data, eps=1e-12):
         eps (float): Small constant to avoid division by zero
 
     Returns:
-        np.ndarray: Normalised data of the same shape
+        np.ndarray: Normalised data 
     """
     mean = data.mean(axis=(0, 2), keepdims=True)  
     std = data.std(axis=(0, 2), keepdims=True)    

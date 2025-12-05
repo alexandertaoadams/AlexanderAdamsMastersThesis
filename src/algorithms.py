@@ -9,9 +9,11 @@ def Gram_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp
     Args:
         X (X_batch_size, n_dimensions, n_timesteps) = (n_X, D, T): The time series data which we want to compute the gram matrix of.
         X_batch_size (n_X): The number of data points.
-        n_dimensions (D): The number of dimensions in each time series datum.
         n_timesteps (T): The length of each time series datum.
         n_nontrivial_levels: The number of nontrivial signature levels we want to compute.
+        lengthscales (D): The lengthscales parameter
+        amp (1): The amplitude parameter
+        weights (n_nontrivial levels + 1): The weights parameter
 
     Intermediates:
         S (n_X, n_X, T, T): Matrix containing squared euclidian distances between pairs of points in X.
@@ -20,7 +22,7 @@ def Gram_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp
         C (n_nontrivial_levels, n_nontrivial_levels, n_X, n_X, T-1, T-1): The carry of lax.scan.
 
     Returns:
-        Levels (n_nontrivial_levels+1, n_X, n_X): The levels of the signature gram matrix.
+        Gram matrix (n_X, n_X): The weighted sum of the signature levels.
     """
     n_X = X_batch_size
     T = n_timesteps
@@ -93,9 +95,11 @@ def Cross_XZ(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial_levels,
         Z (Z_batch_size, n_dimensions, n_timesteps) = (n_Z, D, T): Time series data 2.
         X_batch_size (n_X): The number of data points in X.
         Z_batch_size (n_Z): The number of data points in Z.
-        n_dimensions (D): The number of dimensions in each time series datum, whether in X or Z.
         n_timesteps (T): The length of each time series datum, whether in X or Z.
         n_nontrivial_levels: The number of nontrivial signature levels we want to compute.
+        lengthscales (D): The lengthscales parameter
+        amp (1): The amplitude parameter
+        weights (n_nontrivial levels + 1): The weights parameter
 
     Intermediates:
         S (n_X, n_Z, T, T): Matrix containing squared euclidian distances between pairs of points in X and Z.
@@ -104,7 +108,7 @@ def Cross_XZ(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial_levels,
         C (n_nontrivial_levels, n_nontrivial_levels, n_X, n_Z, T-1, T-1): The carry of lax.scan.
 
     Returns:
-        Levels (n_nontrivial_levels+1, n_X, n_Z): The levels of the signature cross covariance matrix.
+        Cross covariance matrix (n_X, n_Z): The weighted sum of the signature levels.
     """
     n_X = X_batch_size
     n_Z = Z_batch_size
@@ -178,9 +182,11 @@ def Diag_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp
     Args:
         X (X_batch_size, n_dimensions, n_timesteps) = (n_X, D, T): Time series data.
         X_batch_size (n_X): The number of data points in X.
-        n_dimensions (D): The number of dimensions in each time series datum.
         n_timesteps (T): The length of each time series datum.
         n_nontrivial_levels: The number of nontrivial signature levels we want to compute.
+        lengthscales (D): The lengthscales parameter
+        amp (1): The amplitude parameter
+        weights (n_nontrivial levels + 1): The weights parameter
 
     Intermediates:
         S (n_X, T, T): For each input datum we compute the squared Euclidean distance between every pair of timestaps and store in S. We do this for each datum.
@@ -189,7 +195,7 @@ def Diag_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp
         C (n_nontrivial_levels, n_nontrivial_levels, n_X, T-1, T-1): The carry of lax.scan.
 
     Returns:
-        Levels (n_nontrivial_levels+1, n_X): The diagonal elements of the Gram matrix, each level returned separately.
+        Diagonal entries of the Gram matrix (n_X): The weighted sum of the signature levels.
     """
     n_X = X_batch_size
     T = n_timesteps

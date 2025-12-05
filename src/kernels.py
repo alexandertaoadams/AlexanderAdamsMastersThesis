@@ -8,7 +8,7 @@ from .algorithms import Gram_XX_jit, Cross_XZ_jit, Diag_XX_jit
 
 
 class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
-    """
+    """Custom compute engine class for the signature kernel.
     """
     def _gram(self, kernel, X, X_size):
         lengthscales = kernel.lengthscales
@@ -46,7 +46,12 @@ class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
 
 
 class SignatureKernel(gpx.kernels.AbstractKernel):
-    """
+    """Custom kernel class for the signature kernel.
+
+    Note that we do not define pointwise kernel evaluations.
+
+    The JAX dataset class accepts only 2-dimensional inputs, therefore inside our kernel class we expect 2-dimensional inputs
+    and then expand these into 3 dimensions (batch, dimensions, length) before we pass them to the compute engine.
     """
     def __init__(self, n_dimensions, n_timesteps, n_nontrivial_levels, lengthscales=None, amplitude=None, weights=None, compute_engine=CustomComputeEngine):
         self.n_dimensions = n_dimensions

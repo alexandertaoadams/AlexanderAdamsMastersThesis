@@ -23,7 +23,9 @@ def normalise(data, eps=1e-12):
 
 
 def display_parameters(model):
-  
+    """Print a table containing the model hyperparameters: lengthscales, amplitude, weights.
+    To be used on trained model.
+    """
     lengthscales = model.posterior.prior.kernel.lengthscales.value
     amplitude = model.posterior.prior.kernel.amplitude.value
     weights = model.posterior.prior.kernel.weights.value
@@ -39,7 +41,20 @@ def display_parameters(model):
     return df
 
 def display_results(pred_labels, true_labels):
+    """
+    Compute and return the important binary classification metrics.
 
+    Args:
+    pred_labels (array): 
+        Predicted class labels (0 or 1).
+    true_labels (array)
+        True class labels (0 or 1), same length as `pred_labels`.
+
+    Returns:
+    pandas.DataFrame: 
+        A table containing test size, class counts, MCC, F1 score,
+        precision, and recall.
+    """
     y_pred = np.array(pred_labels)
     y_true = np.array(true_labels)
     

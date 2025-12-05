@@ -45,11 +45,11 @@ def display_results(pred_labels, true_labels):
     Compute and return key binary classification metrics.
 
     Args:
-    pred_labels (array): predicted class labels (0 or 1).
-    true_labels (array): True class labels (0 or 1), same length as `pred_labels`.
+        pred_labels (array): predicted class labels (0 or 1).
+        true_labels (array): True class labels (0 or 1), same length as `pred_labels`.
 
     Returns:
-    pd.DataFrame: A table containing test size, class counts, MCC, F1 score, precision, and recall.
+        pd.DataFrame: A table containing test size, class counts, MCC, F1 score, precision, and recall.
     """
     y_pred = np.array(pred_labels)
     y_true = np.array(true_labels)

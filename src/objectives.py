@@ -13,7 +13,7 @@ def collapsed_elbo_bernoulli(variational_family, data):
 
     # Notation and derivation:
     #
-    # Let Sigma = (K_{mm} + \sigma^{-2} K_{mx} K_{xm})^{-1}.
+    # Let $\Sigma = (K_{mm} + \sigma^{-2} K_{mx} K_{xm})^{-1}.$
     # Then the optimal distribution for inducing variables f_m is p(f_m) = N(f_m|mu, A), where:
     #     mu = o
     #

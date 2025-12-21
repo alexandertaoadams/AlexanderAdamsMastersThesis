@@ -10,38 +10,7 @@ from gpjax.distributions import _kl_divergence as kl_divergence
 
 
 def collapsed_elbo_bernoulli(variational_family, data):
-
-    # Notation and derivation:
-    #
-    # Let $\Sigma = (K_{mm} + \sigma^{-2} K_{mx} K_{xm})^{-1}.$
-    # Then the optimal distribution for inducing variables f_m is p(f_m) = N(f_m|mu, A), where:
-    #     mu = o
-    #
-    #
-    # Let Q = KxzKzz⁻¹Kzx, we must compute the log normal pdf:
-    #
-    #   log N(y; μx, o²I + Q) = -nπ - n/2 log|o²I + Q|
-    #   - 1/2 (y - μx)ᵀ (o²I + Q)⁻¹ (y - μx).
-    #
-    # The log determinant |o²I + Q| is computed via applying the matrix determinant
-    #   lemma
-    #
-    #   |o²I + Q| = log|o²I| + log|I + Lz⁻¹ Kzx (o²I)⁻¹ Kxz Lz⁻¹| = log(o²) +  log|B|,
-    #
-    #   with B = I + AAᵀ and A = Lz⁻¹ Kzx / o.
-    #
-    # Similarly we apply matrix inversion lemma to invert o²I + Q
-    #
-    #   (o²I + Q)⁻¹ = (Io²)⁻¹ - (Io²)⁻¹ Kxz Lz⁻ᵀ (I + Lz⁻¹ Kzx (Io²)⁻¹ Kxz Lz⁻ᵀ )⁻¹ Lz⁻¹ Kzx (Io²)⁻¹
-    #               = (Io²)⁻¹ - (Io²)⁻¹ oAᵀ (I + oA (Io²)⁻¹ oAᵀ)⁻¹ oA (Io²)⁻¹
-    #               = I/o² - Aᵀ B⁻¹ A/o²,
-    #
-    # giving the quadratic term as
-    #
-    #   (y - μx)ᵀ (o²I + Q)⁻¹ (y - μx) = [(y - μx)ᵀ(y - µx)  - (y - μx)ᵀ Aᵀ B⁻¹ A (y - μx)]/o²,
-    #
-    #   with A and B defined as above.
-    
+   
     # Unpack training data
     x, y, n = data.X, data.y, data.n
     z = variational_family.inducing_inputs

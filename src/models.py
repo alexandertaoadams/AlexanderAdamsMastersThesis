@@ -35,7 +35,8 @@ class CollapsedBernoulliVariationalGaussian(gpx.variational_families.AbstractVar
 
         # Mean
         mean_x = mean_function(x)
-
+        
+        #
         Kmn = kernel.cross_covariance(z, x)
         Kmm = add_jitter(kernel.gram(z).to_dense(), 1e-3)
         Kmt = kernel.cross_covariance(z, t)
@@ -63,11 +64,6 @@ class CollapsedBernoulliVariationalGaussian(gpx.variational_families.AbstractVar
         M3 = solve(L3, Kmt)
         C = jnp.matmul(M3.T, M3)
         A_star = Ktt - C
-
-        # print(jnp.linalg.eigvalsh(Kmm))
-        # print(jnp.linalg.eigvalsh(Sigma_dense))
-        # print(jnp.linalg.eigvalsh(Temp2_dense))
-        # print(jnp.linalg.eigvalsh(Temp3_dense))
 
         # Compute Mu_star
         front = solve(L1, Kmt)

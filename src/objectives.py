@@ -60,11 +60,6 @@ def collapsed_elbo_bernoulli(variational_family, data):
     C = jnp.matmul(M3.T, M3)
     A_tilde = jnp.expand_dims(Knn_diag - jnp.diagonal(C), axis=1)
 
-    # print(jnp.linalg.eigvalsh(Kmm))
-    # print(jnp.linalg.eigvalsh(Sigma_dense))
-    # print(jnp.linalg.eigvalsh(Temp2_dense))
-    # print(jnp.linalg.eigvalsh(Temp3_dense))
-
     # Compute Mu_tilde
     M4 = solve(L1, Kmn)
     D = jnp.matmul(M4.T, M4)
@@ -75,8 +70,5 @@ def collapsed_elbo_bernoulli(variational_family, data):
     log_prob = vmap(lambda f, y: link_func(f).log_prob(y))
     integrals = variational_family.posterior.likelihood.integrator(fun=log_prob, y=y, mean=mu_tilde, variance=A_tilde, likelihood=variational_family.posterior.likelihood)
 
-    # print(mu_tilde)
-    # print(A_tilde)
-    # print(integrals)
     elbolbo = jnp.sum(integrals) - kl
     return elbolbo

@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 import gpjax as gpx
+from jax import jit
 from gpjax.linalg import Dense, psd
 from gpjax.parameters import Real, Parameter, NonNegativeReal
 

@@ -4,24 +4,6 @@ import jax.numpy as jnp
 import pandas as pd
 import sklearn.metrics as skm
 
-
-def normalise(data, eps=1e-12):
-    """Normalises time series data so that each dimension has global zero mean and unit variance,
-    across all samples and time steps.
-
-    Args:
-        data (np.ndarray): Array of shape (n_sequences, n_dims, seq_length)
-        eps (float): Small constant to avoid division by zero
-
-    Returns:
-        np.ndarray: Normalised data 
-    """
-    mean = data.mean(axis=(0, 2), keepdims=True)  
-    std = data.std(axis=(0, 2), keepdims=True)    
-    normalised_data = (data - mean) / (std + eps)
-    return normalised_data, mean, std
-
-
 def display_parameters(model):
     """Print a table containing the model hyperparameters: lengthscales, amplitude, weights.
     """

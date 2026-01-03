@@ -20,4 +20,4 @@ def add_time(sequences):
     length = sequences.shape[-1]
     time = np.arange(length) / (length - 1)
     time_broadcasted = np.broadcast_to(time.reshape(1, 1, length), (sequences.shape[0], 1, length))
-    return np.concatenate([sequences, time_broadcasted], axis=1)
+    return np.concatenate([time_broadcasted, sequences], axis=1)

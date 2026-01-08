@@ -16,7 +16,7 @@ def timed_fit(
     model,
     objective,
     train_data,
-    validation_data.
+    validation_data,
     optim,
     params_bijection: tp.Union[dict[Parameter, Transform], None] = DEFAULT_BIJECTION,
     trainable=Parameter,

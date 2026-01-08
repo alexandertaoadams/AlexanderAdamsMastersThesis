@@ -1,4 +1,8 @@
 import gpjax as gpx
+from gpjax.objectives import elbo
+from gpjax.parameters import Parameter
+from gpjax.dataset import Dataset
+
 from flax import nnx
 import time 
 import typing as tp

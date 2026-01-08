@@ -2,28 +2,94 @@ import gpjax as gpx
 from flax import nnx
 
 
-def custom_fit(model, objective, train_dataset, optimiser, num_iters, batch_size, verbose=False):
+def timed_fit(
+    model,
+    objective,
+    train_data,
+    validation_data.
+    optim,
+    params_bijection: tp.Union[dict[Parameter, Transform], None] = DEFAULT_BIJECTION,
+    trainable=Parameter,
+    max_time=300,
+    iterations_per_stage=100,
+    patience=10,
+    seed=42,
+    batch_size=-1,
+    unroll=1
+):
 
-    intermediate_model, history1 = gpx.fit(
-        model=model,
-        objective= lambda model, data: -objective(model, data),
-        train_data=train_dataset,
-        optim=optimiser,
-        trainable=nnx.OfType((gpx.parameters.Real, gpx.parameters.LowerTriangular)),
-        num_iters=num_iters,
-        batch_size=batch_size,
-        verbose=verbose
-    )
+    graphdef, params, *static_state = nnx.split(model, trainable, ...)
 
-    optimised_model, history2 = gpx.fit(
-        model=intermediate_model,
-        objective= lambda model, data: -objective(model, data),
-        train_data=train_dataset,
-        optim=optimiser,
-        trainable=gpx.parameters.Parameter,
-        num_iters=num_iters,
-        batch_size=batch_size,
-        verbose=verbose
-    )
+    if params_bijection is not None:
+        params = transform(params, params_bijection, inverse=True)
 
-    return optimised_model
+    def loss(params: nnx.State, batch):
+        params_c = transform(params, params_bijection)
+        model = nnx.merge(graphdef, params_c, *static_state)
+        return objective(model, batch)
+
+    def step(carry, key):
+        params, opt_state = carry
+
+        if batch_size != -1:
+            batch = get_batch(train_data, batch_size, key)
+        else:
+            batch = train_data
+
+        loss_val, grads = jax.value_and_grad(loss)(params, batch)
+        updates, opt_state = optim.update(grads, opt_state, params)
+        params = ox.apply_updates(params, updates)
+
+        return (params, opt_state), loss_val
+        
+    key = jr.PRNGKey(seed)
+    opt_state = optim.init(params)
+
+    best_params = params
+    best_val_loss = jnp.inf
+    bad_stages = 0
+    stage = 0
+
+    start = time.perf_counter()
+    elapsed = 0.0
+    while elapsed < max_time and bad_stages < patience:
+
+        key, stage_key = jr.split(key)
+        iter_keys = jr.split(stage_key, iterations_per_stage)
+
+        # JAX scan 
+        (new_params, new_opt_state), _ = jax.lax.scan(
+            step,
+            (params, opt_state),
+            iter_keys,
+            unroll=unroll,
+        )
+
+        # Validation
+        params_c = transform(new_params, params_bijection)
+        model = nnx.merge(graphdef, params_c, *static_state)
+        new_val_loss = float(-elbo(model, validation_data))  
+        jax.debug.print("Stage {s}, validation loss = {l}", s=stage, l=new_val_loss)
+
+        # Update for next stage
+        params = new_params
+        opt_state = new_opt_state
+
+        # Early stopping update
+        if new_val_loss < best_val_loss:
+            best_val_loss = new_val_loss
+            best_params = new_params
+            bad_stages = 0
+        else:
+            bad_stages += 1
+
+        # Update elapsed and stage
+        stage += 1
+        elapsed = time.perf_counter() - start
+        jax.debug.print("Elapsed time: {t:.2f}s", t=elapsed)
+
+    if params_bijection is not None:
+        best_params = transform(best_params, params_bijection)
+
+    trained_model = nnx.merge(graphdef, best_params, *static_state)
+    return trained_model

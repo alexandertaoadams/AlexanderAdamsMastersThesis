@@ -10,24 +10,7 @@ from gpjax.parameters import (
 )
 from numpyro.distributions.transforms import Transform
 
-def get_batch(train_data: Dataset, batch_size: int, key) -> Dataset:
-    """Batch the data into mini-batches. Sampling is done with replacement.
 
-    Args:
-        train_data (Dataset): The training dataset.
-        batch_size (int): The batch size.
-        key (KeyArray): The random key to use for the batch selection.
-
-    Returns
-    -------
-        Dataset: The batched dataset.
-    """
-    x, y, n = train_data.X, train_data.y, train_data.n
-
-    # Subsample mini-batch indices with replacement.
-    indices = jr.choice(key, n, (batch_size,), replace=True)
-
-    return Dataset(X=x[indices], y=y[indices])
 
 def timed_fit(
     model,
@@ -120,3 +103,24 @@ def timed_fit(
 
     trained_model = nnx.merge(graphdef, best_params, *static_state)
     return trained_model
+
+
+
+def get_batch(train_data: Dataset, batch_size: int, key) -> Dataset:
+    """Batch the data into mini-batches. Sampling is done with replacement.
+
+    Args:
+        train_data (Dataset): The training dataset.
+        batch_size (int): The batch size.
+        key (KeyArray): The random key to use for the batch selection.
+
+    Returns
+    -------
+        Dataset: The batched dataset.
+    """
+    x, y, n = train_data.X, train_data.y, train_data.n
+
+    # Subsample mini-batch indices with replacement.
+    indices = jr.choice(key, n, (batch_size,), replace=True)
+
+    return Dataset(X=x[indices], y=y[indices])

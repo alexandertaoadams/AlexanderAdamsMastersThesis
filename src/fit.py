@@ -1,3 +1,4 @@
+import jax
 import jax.numpy as jnp
 import gpjax as gpx
 from gpjax.objectives import elbo

@@ -117,6 +117,7 @@ def convergence_fit(
     model,
     objective,
     train_data,
+    validation_dataset,
     optim,
     params_bijection: tp.Union[dict[Parameter, Transform], None] = DEFAULT_BIJECTION,
     trainable=Parameter,
@@ -126,7 +127,6 @@ def convergence_fit(
     max_stages=10,
     num_iters=100,
     patience=3,
-    validation_dataset=D,
 ):
 
     graphdef, params, *static_state = nnx.split(model, trainable, ...)

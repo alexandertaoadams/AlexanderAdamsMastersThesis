@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 import gpjax as gpx
+import optax as ox
 from gpjax.objectives import elbo
 from gpjax.parameters import Parameter
 from gpjax.dataset import Dataset

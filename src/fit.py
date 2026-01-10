@@ -23,6 +23,79 @@ def timed_fit(
     model,
     objective,
     train_data,
+    optim,
+    params_bijection: tp.Union[dict[Parameter, Transform], None] = DEFAULT_BIJECTION,
+    trainable=Parameter,
+    max_time=300.0,          
+    check_every=100,         
+    seed=42,
+    batch_size=-1,
+    unroll=1,
+):
+    graphdef, params, *static_state = nnx.split(model, trainable, ...)
+
+    if params_bijection is not None:
+        params = transform(params, params_bijection, inverse=True)
+
+    def loss_fn(params, batch):
+        params_c = transform(params, params_bijection)
+        model = nnx.merge(graphdef, params_c, *static_state)
+        return objective(model, batch)
+
+    def step(carry, key):
+        params, opt_state = carry
+
+        if batch_size != -1:
+            batch = get_batch(train_data, batch_size, key)
+        else:
+            batch = train_data
+
+        loss_val, grads = jax.value_and_grad(loss_fn)(params, batch)
+        updates, opt_state = optim.update(grads, opt_state, params)
+        params = ox.apply_updates(params, updates)
+
+        return (params, opt_state), loss_val
+
+    key = jr.PRNGKey(seed)
+    opt_state = optim.init(params)
+
+    start_time = time.perf_counter()
+    elapsed = 0.0
+    step_count = 0
+
+    while elapsed < max_time:
+        key, chunk_key = jr.split(key)
+        keys = jr.split(chunk_key, check_every)
+
+        (params, opt_state), losses = jax.lax.scan(
+            step,
+            (params, opt_state),
+            keys,
+            unroll=unroll,
+        )
+
+        step_count += check_every
+        elapsed = time.perf_counter() - start_time
+
+        jax.debug.print(
+            "Steps: {s}, elapsed: {t:.2f}s, last loss: {l}",
+            s=step_count,
+            t=elapsed,
+            l=losses[-1],
+        )
+
+    if params_bijection is not None:
+        params = transform(params, params_bijection)
+
+    trained_model = nnx.merge(graphdef, params, *static_state)
+    return trained_model
+
+
+
+def timed_fit_with_validation(
+    model,
+    objective,
+    train_data,
     validation_data,
     optim,
     params_bijection: tp.Union[dict[Parameter, Transform], None] = DEFAULT_BIJECTION,

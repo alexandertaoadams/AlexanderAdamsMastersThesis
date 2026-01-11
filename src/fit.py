@@ -38,12 +38,8 @@ def timed_fit(
         _check_model(model)
         _check_train_data(train_data)
         _check_optim(optim)
-        _check_num_iters(num_iters)
         _check_batch_size(batch_size)
-        _check_log_rate(log_rate)
-        _check_verbose(verbose)
-
-    
+        
     graphdef, params, *static_state = nnx.split(model, trainable, ...)
 
     if params_bijection is not None:
@@ -352,39 +348,6 @@ def _check_optim(optim: tp.Any) -> None:
         raise TypeError(
             "Expected optim to be of type optax.GradientTransformation. "
             f"Got {optim} of type {type(optim)}."
-        )
-
-
-def _check_num_iters(num_iters: tp.Any) -> None:
-    """Check that the number of iterations is of type int and positive."""
-    if not isinstance(num_iters, int):
-        raise TypeError(
-            "Expected num_iters to be of type int. "
-            f"Got {num_iters} of type {type(num_iters)}."
-        )
-
-    if num_iters <= 0:
-        raise ValueError(f"Expected num_iters to be positive. Got {num_iters}.")
-
-
-def _check_log_rate(log_rate: tp.Any) -> None:
-    """Check that the log rate is of type int and positive."""
-    if not isinstance(log_rate, int):
-        raise TypeError(
-            "Expected log_rate to be of type int. "
-            f"Got {log_rate} of type {type(log_rate)}."
-        )
-
-    if not log_rate > 0:
-        raise ValueError(f"Expected log_rate to be positive. Got {log_rate}.")
-
-
-def _check_verbose(verbose: tp.Any) -> None:
-    """Check that the verbose is of type bool."""
-    if not isinstance(verbose, bool):
-        raise TypeError(
-            "Expected verbose to be of type bool. "
-            f"Got {verbose} of type {type(verbose)}."
         )
 
 

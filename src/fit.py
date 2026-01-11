@@ -36,7 +36,6 @@ def timed_fit(
 
     if safe:
         _check_model(model)
-        _check_train_data(train_data)
         _check_optim(optim)
         _check_batch_size(batch_size)
         

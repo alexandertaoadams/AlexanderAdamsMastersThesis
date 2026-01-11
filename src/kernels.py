@@ -3,7 +3,6 @@ import jax.numpy as jnp
 import gpjax as gpx
 from gpjax.linalg import Dense, psd
 from gpjax.parameters import Real, Parameter, NonNegativeReal
-
 from .algorithms import Gram_XX_jit, Cross_XZ_jit, Diag_XX_jit
 
 
@@ -15,7 +14,7 @@ class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
         amplitude = kernel.amplitude
         weights = kernel.weights
         return Gram_XX_jit(
-            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, amplitude.value, weights.value
+            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), amplitude.get_value(), weights.get_value()
             )
 
     def _cross_covariance(self, kernel, X, Z, X_size, Z_size):
@@ -23,7 +22,7 @@ class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
         amplitude = kernel.amplitude
         weights = kernel.weights
         return Cross_XZ_jit(
-            X, Z, X_size, Z_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, amplitude.value, weights.value
+            X, Z, X_size, Z_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), amplitude.get_value(), weights.get_value()
             )
 
     def _diagonal(self, kernel, X, X_size):
@@ -31,7 +30,7 @@ class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
         amplitude = kernel.amplitude
         weights = kernel.weights
         return Diag_XX_jit(
-            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, amplitude.value, weights.value
+            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), amplitude.get_value(), weights.get_value()
             )
 
     def gram(self, kernel, X, X_size):
@@ -49,9 +48,6 @@ class SignatureKernel(gpx.kernels.AbstractKernel):
     """Custom kernel class for the signature kernel.
 
     Note that we do not define pointwise kernel evaluations.
-
-    The JAX dataset class accepts only 2-dimensional inputs, therefore inside our kernel class we expect 2-dimensional inputs
-    and then expand these into 3 dimensions (batch, dimensions, length) before we pass them to the compute engine.
     """
     def __init__(self, n_dimensions, n_timesteps, n_nontrivial_levels, lengthscales=None, amplitude=None, weights=None, compute_engine=CustomComputeEngine):
         self.n_dimensions = n_dimensions
@@ -73,24 +69,17 @@ class SignatureKernel(gpx.kernels.AbstractKernel):
     def default_weights(self):
         return jnp.ones(self.n_nontrivial_levels+1)
 
-    def reshape3D(self, X):
-        return jnp.reshape(X, (X.shape[0], self.n_dimensions, self.n_timesteps))
-
     def gram(self, X):
         X_size = X.shape[0]
-        X = self.reshape3D(X)
         return psd(Dense(self.compute_engine.gram(self, X, X_size)))
 
     def cross_covariance(self, X, Z):
         X_size = X.shape[0]
         Z_size = Z.shape[0]
-        X = self.reshape3D(X)
-        Z = self.reshape3D(Z)
         return self.compute_engine.cross_covariance(self, X, Z, X_size, Z_size)
 
     def diagonal(self, X):
         X_size = X.shape[0]
-        X = self.reshape3D(X)
         return self.compute_engine.diagonal(self, X, X_size)
 
     def __call__(self, X, Z):

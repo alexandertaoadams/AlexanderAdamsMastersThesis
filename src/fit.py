@@ -4,7 +4,7 @@ import gpjax as gpx
 import optax as ox
 from gpjax.objectives import elbo
 from gpjax.parameters import Parameter
-from .datasets import dataset_3D
+from .datasets import Dataset_3D
 
 from flax import nnx
 import time 

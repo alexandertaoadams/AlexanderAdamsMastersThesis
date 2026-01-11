@@ -304,7 +304,7 @@ def convergence_fit(
 
 
 
-def get_batch(train_data, batch_size):
+def get_batch(train_data, batch_size, key):
     """Batch the data into mini-batches. Sampling is done with replacement.
 
     Args:

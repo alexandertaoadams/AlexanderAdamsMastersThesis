@@ -84,13 +84,6 @@ def timed_fit(
         step_count += check_every
         elapsed = time.perf_counter() - start_time
 
-        jax.debug.print(
-            "Steps: {s}, elapsed: {t:.2f}s, last loss: {l}",
-            s=step_count,
-            t=elapsed,
-            l=losses[-1],
-        )
-
     if params_bijection is not None:
         params = transform(params, params_bijection)
 

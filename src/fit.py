@@ -4,7 +4,7 @@ import gpjax as gpx
 import optax as ox
 from gpjax.objectives import elbo
 from gpjax.parameters import Parameter
-from gpjax.dataset import Dataset
+from .datasets import dataset_3D
 
 from flax import nnx
 import time 
@@ -321,7 +321,7 @@ def get_batch(train_data: Dataset, batch_size: int, key) -> Dataset:
     # Subsample mini-batch indices with replacement.
     indices = jr.choice(key, n, (batch_size,), replace=True)
 
-    return Dataset(X=x[indices], y=y[indices])
+    return Dataset_3D(X=x[indices], y=y[indices])
 
 def _check_model(model: tp.Any) -> None:
     """Check that the model is a subclass of nnx.Module."""

@@ -31,6 +31,7 @@ def timed_fit(
     seed=42,
     batch_size=-1,
     unroll=1,
+    safe = True,
 ):
 
     if safe:

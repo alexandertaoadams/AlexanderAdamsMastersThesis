@@ -32,6 +32,17 @@ def timed_fit(
     batch_size=-1,
     unroll=1,
 ):
+
+    if safe:
+        _check_model(model)
+        _check_train_data(train_data)
+        _check_optim(optim)
+        _check_num_iters(num_iters)
+        _check_batch_size(batch_size)
+        _check_log_rate(log_rate)
+        _check_verbose(verbose)
+
+    
     graphdef, params, *static_state = nnx.split(model, trainable, ...)
 
     if params_bijection is not None:
@@ -297,7 +308,6 @@ def convergence_fit(
 
 
 
-
 def get_batch(train_data: Dataset, batch_size: int, key) -> Dataset:
     """Batch the data into mini-batches. Sampling is done with replacement.
 
@@ -316,3 +326,74 @@ def get_batch(train_data: Dataset, batch_size: int, key) -> Dataset:
     indices = jr.choice(key, n, (batch_size,), replace=True)
 
     return Dataset(X=x[indices], y=y[indices])
+
+def _check_model(model: tp.Any) -> None:
+    """Check that the model is a subclass of nnx.Module."""
+    if not isinstance(model, nnx.Module):
+        raise TypeError(
+            "Expected model to be a subclass of nnx.Module. "
+            f"Got {model} of type {type(model)}."
+        )
+
+
+def _check_train_data(train_data: tp.Any) -> None:
+    """Check that the train_data is of type gpjax.Dataset."""
+    if not isinstance(train_data, Dataset):
+        raise TypeError(
+            "Expected train_data to be of type gpjax.Dataset. "
+            f"Got {train_data} of type {type(train_data)}."
+        )
+
+
+def _check_optim(optim: tp.Any) -> None:
+    """Check that the optimiser is of type GradientTransformation."""
+    if not isinstance(optim, ox.GradientTransformation):
+        raise TypeError(
+            "Expected optim to be of type optax.GradientTransformation. "
+            f"Got {optim} of type {type(optim)}."
+        )
+
+
+def _check_num_iters(num_iters: tp.Any) -> None:
+    """Check that the number of iterations is of type int and positive."""
+    if not isinstance(num_iters, int):
+        raise TypeError(
+            "Expected num_iters to be of type int. "
+            f"Got {num_iters} of type {type(num_iters)}."
+        )
+
+    if num_iters <= 0:
+        raise ValueError(f"Expected num_iters to be positive. Got {num_iters}.")
+
+
+def _check_log_rate(log_rate: tp.Any) -> None:
+    """Check that the log rate is of type int and positive."""
+    if not isinstance(log_rate, int):
+        raise TypeError(
+            "Expected log_rate to be of type int. "
+            f"Got {log_rate} of type {type(log_rate)}."
+        )
+
+    if not log_rate > 0:
+        raise ValueError(f"Expected log_rate to be positive. Got {log_rate}.")
+
+
+def _check_verbose(verbose: tp.Any) -> None:
+    """Check that the verbose is of type bool."""
+    if not isinstance(verbose, bool):
+        raise TypeError(
+            "Expected verbose to be of type bool. "
+            f"Got {verbose} of type {type(verbose)}."
+        )
+
+
+def _check_batch_size(batch_size: tp.Any) -> None:
+    """Check that the batch size is of type int and positive if not minus 1."""
+    if not isinstance(batch_size, int):
+        raise TypeError(
+            "Expected batch_size to be of type int. "
+            f"Got {batch_size} of type {type(batch_size)}."
+        )
+
+    if not batch_size == -1 and not batch_size > 0:
+        raise ValueError(f"Expected batch_size to be positive or -1. Got {batch_size}.")

@@ -22,12 +22,6 @@ class Dataset_3D:
     X: Optional[Num[Array, "N D"]] = None
     y: Optional[Num[Array, "N Q"]] = None
 
-    def __post_init__(self) -> None:
-        r"""Checks that the shapes of $X$ and $y$ are compatible,
-        and provides warnings regarding the precision of $X$ and $y$."""
-        _check_shape(self.X, self.y)
-        _check_precision(self.X, self.y)
-
     def __repr__(self) -> str:
         r"""Returns a string representation of the dataset."""
         repr = f"Dataset(Number of observations: {self.n:=} - Input dimension: {self.in_dim})"
@@ -72,41 +66,4 @@ class Dataset_3D:
         return cls(*children)
 
 
-def _check_shape(
-    X: Optional[Num[Array, "..."]], y: Optional[Num[Array, "..."]]
-) -> None:
-    r"""Checks that the shapes of $X$ and $y$ are compatible."""
-    if X is not None and y is not None and X.shape[0] != y.shape[0]:
-        raise ValueError(
-            "Inputs, X, and outputs, y, must have the same number of rows."
-            f" Got X.shape={X.shape} and y.shape={y.shape}."
-        )
 
-    if X is not None and X.ndim != 3:
-        raise ValueError(
-            f"Inputs, X, must be a 3-dimensional array. Got X.ndim={X.ndim}."
-        )
-
-    if y is not None and y.ndim != 2:
-        raise ValueError(
-            f"Outputs, y, must be a 2-dimensional array. Got y.ndim={y.ndim}."
-        )
-
-
-def _check_precision(
-    X: Optional[Num[Array, "..."]], y: Optional[Num[Array, "..."]]
-) -> None:
-    r"""Checks the precision of $X$ and $y`."""
-    if X is not None and X.dtype != jnp.float64:
-        warnings.warn(
-            "X is not of type float64. "
-            f"Got X.dtype={X.dtype}. This may lead to numerical instability. ",
-            stacklevel=2,
-        )
-
-    if y is not None and y.dtype != jnp.float64:
-        warnings.warn(
-            "y is not of type float64."
-            f"Got y.dtype={y.dtype}. This may lead to numerical instability.",
-            stacklevel=2,
-        )

@@ -62,24 +62,17 @@ class TrivialSignatureKernel(gpx.kernels.AbstractKernel):
     def default_weights(self):
         return jnp.ones(self.n_nontrivial_levels+1)
 
-    def reshape3D(self, X):
-        return jnp.reshape(X, (X.shape[0], self.n_dimensions, self.n_timesteps))
-
     def gram(self, X):
         X_size = X.shape[0]
-        X = self.reshape3D(X)
         return psd(Dense(self.compute_engine.gram(self, X, X_size)))
 
     def cross_covariance(self, X, Z):
         X_size = X.shape[0]
         Z_size = Z.shape[0]
-        X = self.reshape3D(X)
-        Z = self.reshape3D(Z)
         return self.compute_engine.cross_covariance(self, X, Z, X_size, Z_size)
 
     def diagonal(self, X):
         X_size = X.shape[0]
-        X = self.reshape3D(X)
         return self.compute_engine.diagonal(self, X, X_size)
 
     def __call__(self, X, Z):

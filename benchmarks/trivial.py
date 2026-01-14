@@ -14,7 +14,7 @@ class TrivialCustomComputeEngine(gpx.kernels.computations.AbstractKernelComputat
 
         weights = kernel.weights
         return Gram_XX_Trivial_jit(
-            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), weights.get_value()
+            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, weights.value
             )
 
     def _cross_covariance(self, kernel, X, Z, X_size, Z_size):
@@ -22,7 +22,7 @@ class TrivialCustomComputeEngine(gpx.kernels.computations.AbstractKernelComputat
 
         weights = kernel.weights
         return Cross_XZ_Trivial_jit(
-            X, Z, X_size, Z_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), weights.get_value()
+            X, Z, X_size, Z_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, weights.value
             )
 
     def _diagonal(self, kernel, X, X_size):
@@ -30,7 +30,7 @@ class TrivialCustomComputeEngine(gpx.kernels.computations.AbstractKernelComputat
 
         weights = kernel.weights
         return Diag_XX_Trivial_jit(
-            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), weights.get_value()
+            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, weights.value
             )
 
     def gram(self, kernel, X, X_size):
@@ -58,9 +58,6 @@ class TrivialSignatureKernel(gpx.kernels.AbstractKernel):
     def default_lengthscales(self):
         C = jnp.sqrt(2*self.n_dimensions)
         return C * jnp.ones(self.n_dimensions)
-
-    def default_amplitude(self):
-        return jnp.array([1.0])
 
     def default_weights(self):
         return jnp.ones(self.n_nontrivial_levels+1)
@@ -104,6 +101,7 @@ def Gram_XX_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthsca
     XX = jax.lax.dot_general(X, X, dimension_numbers=( ((1,),(1,)), ((),()) ) )
     S = jnp.transpose(XX, (0, 2, 1, 3))
     R = S[:,:,1:,1:] - S[:,:,1:,:-1] - S[:,:,:-1,1:] + S[:,:,:-1,:-1]
+    R = 1e-3* (R - jnp.mean(R))
 
     # Level 0 (Trivial Level)
     level_0 = jnp.expand_dims(jnp.ones((n_X, n_X)), axis=0)
@@ -168,6 +166,7 @@ def Cross_XZ_Trivial(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial
     XZ = jax.lax.dot_general(X, Z, dimension_numbers=( ((1,),(1,)), ((),()) ) )
     S = jnp.transpose(XZ, (0, 2, 1, 3))
     R = S[:,:,1:,1:] - S[:,:,1:,:-1] - S[:,:,:-1,1:] + S[:,:,:-1,:-1]
+    R = 1e-3* (R - jnp.mean(R))
 
     # Level 0 (Trivial Level)
     level_0 = jnp.expand_dims(jnp.ones((n_X, n_Z)), axis=0)
@@ -230,6 +229,7 @@ def Diag_XX_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthsca
     XX = jax.lax.dot_general(X, X, dimension_numbers=( ((1,),(1,)), ((0,),(0,)) ) )
     S = XX
     R = S[:,1:,1:] - S[:,1:,:-1] - S[:,:-1,1:] + S[:,:-1,:-1]
+    R = 1e-3* (R - jnp.mean(R))
 
     # Level 0 (Trivial Level)
     level_0 = jnp.expand_dims(jnp.ones((n_X)), axis=0)

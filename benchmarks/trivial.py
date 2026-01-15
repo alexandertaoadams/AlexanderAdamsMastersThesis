@@ -94,7 +94,7 @@ def Gram_XX_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthsca
     XX = jax.lax.dot_general(X, X, dimension_numbers=( ((1,),(1,)), ((),()) ) )
     S = jnp.transpose(XX, (0, 2, 1, 3))
     R = S[:,:,1:,1:] - S[:,:,1:,:-1] - S[:,:,:-1,1:] + S[:,:,:-1,:-1]
-    R = 1e-3* (R - jnp.mean(R))
+    R = 1e-6* (R - jnp.mean(R))
 
     # Level 0 (Trivial Level)
     level_0 = jnp.expand_dims(jnp.ones((n_X, n_X)), axis=0)
@@ -159,7 +159,7 @@ def Cross_XZ_Trivial(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial
     XZ = jax.lax.dot_general(X, Z, dimension_numbers=( ((1,),(1,)), ((),()) ) )
     S = jnp.transpose(XZ, (0, 2, 1, 3))
     R = S[:,:,1:,1:] - S[:,:,1:,:-1] - S[:,:,:-1,1:] + S[:,:,:-1,:-1]
-    R = 1e-3* (R - jnp.mean(R))
+    R = 1e-6* (R - jnp.mean(R))
 
     # Level 0 (Trivial Level)
     level_0 = jnp.expand_dims(jnp.ones((n_X, n_Z)), axis=0)
@@ -222,7 +222,7 @@ def Diag_XX_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthsca
     XX = jax.lax.dot_general(X, X, dimension_numbers=( ((1,),(1,)), ((0,),(0,)) ) )
     S = XX
     R = S[:,1:,1:] - S[:,1:,:-1] - S[:,:-1,1:] + S[:,:-1,:-1]
-    R = 1e-3* (R - jnp.mean(R))
+    R = 1e-6* (R - jnp.mean(R))
 
     # Level 0 (Trivial Level)
     level_0 = jnp.expand_dims(jnp.ones((n_X)), axis=0)

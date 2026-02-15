@@ -19,6 +19,79 @@ from numpyro.distributions.transforms import Transform
 
 
 
+def iteration_fit(
+    model,
+    objective,
+    train_data,
+    optim,
+    params_bijection: dict[Parameter, Transform] | None = DEFAULT_BIJECTION,
+    trainable: nnx.filterlib.Filter = Parameter,
+    key = jr.key(42),
+    num_iters: int = 100,
+    batch_size: int = -1,
+    log_rate: int = 10,
+    verbose: bool = True,
+    unroll: int = 1,
+    safe: bool = True,
+):
+
+    if safe:
+        _check_model(model)
+        _check_optim(optim)
+        _check_batch_size(batch_size)
+
+    # Model state filtering
+    graphdef, params, *static_state = nnx.split(model, trainable, ...)
+
+    # Parameters bijection to unconstrained space
+    if params_bijection is not None:
+        params = transform(params, params_bijection, inverse=True)
+
+    # Loss definition
+    def loss(params, batch):
+        params = transform(params, params_bijection)
+        model = nnx.merge(graphdef, params, *static_state)
+        return objective(model, batch)
+
+    # Initialise optimiser state.
+    opt_state = optim.init(params)
+
+    # Mini-batch random keys to scan over.
+    iter_keys = jr.split(key, num_iters)
+
+    # Optimisation step.
+    def step(carry, key):
+        params, opt_state = carry
+
+        if batch_size != -1:
+            batch = get_batch(train_data, batch_size, key)
+        else:
+            batch = train_data
+
+        loss_val, loss_gradient = jax.value_and_grad(loss)(params, batch)
+        updates, opt_state = optim.update(loss_gradient, opt_state, params)
+        params = ox.apply_updates(params, updates)
+
+        carry = params, opt_state
+        return carry, loss_val
+
+    # Optimisation scan.
+    scan = vscan if verbose else jax.lax.scan
+
+    # Optimisation loop.
+    (params, _), history = scan(step, (params, opt_state), (iter_keys), unroll=unroll)
+
+    # Parameters bijection to constrained space
+    if params_bijection is not None:
+        params = transform(params, params_bijection)
+
+    # Reconstruct model
+    model = nnx.merge(graphdef, params, *static_state)
+
+    return model, history
+
+
+
 def timed_fit(
     model,
     objective,

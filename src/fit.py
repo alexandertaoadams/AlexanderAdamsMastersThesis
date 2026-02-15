@@ -16,6 +16,7 @@ from gpjax.parameters import (
     transform,
 )
 from numpyro.distributions.transforms import Transform
+from gpjax.scan import vscan
 
 
 

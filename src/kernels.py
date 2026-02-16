@@ -25,14 +25,6 @@ class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
             X, Z, X_size, Z_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), amplitude.get_value(), weights.get_value()
             )
 
-    def _diagonal(self, kernel, X, X_size):
-        lengthscales = kernel.lengthscales
-        amplitude = kernel.amplitude
-        weights = kernel.weights
-        return Diag_XX_jit(
-            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), amplitude.get_value(), weights.get_value()
-            )
-
     def gram(self, kernel, X, X_size):
         return self._gram(kernel, X, X_size)
 
@@ -80,7 +72,7 @@ class SignatureKernel(gpx.kernels.AbstractKernel):
 
     def diagonal(self, X):
         X_size = X.shape[0]
+        
         return self.compute_engine.diagonal(self, X, X_size)
-
-    def __call__(self, X, Z):
-        raise NotImplementedError("Pointwise kernel evaluation is not implemented.")
+    def __call__(self, x, y):
+        return 1

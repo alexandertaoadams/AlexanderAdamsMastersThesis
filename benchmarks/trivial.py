@@ -204,8 +204,8 @@ def Cross_XZ_Trivial(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial
 
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
 
-    X_var = diagonal_Trivial_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights) + 1e-6
-    Z_var = diagonal_Trivial_jit(Z, Z_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights) + 1e-6
+    X_var = diagonal_Trivial_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights)
+    Z_var = diagonal_Trivial_jit(Z, Z_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights)
     L = L / (jnp.sqrt(X_var)[:, :, None] * jnp.sqrt(Z_var)[:, None, :])
 
     return jnp.tensordot(weights, L , axes=([0], [0]))

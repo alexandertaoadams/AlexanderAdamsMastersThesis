@@ -148,7 +148,7 @@ def timed_fit(
         key, chunk_key = jr.split(key)
         keys = jr.split(chunk_key, check_every)
 
-        (params, opt_state), losses = jax.lax.scan(
+        (params, opt_state), history = jax.lax.scan(
             step,
             (params, opt_state),
             keys,
@@ -162,7 +162,7 @@ def timed_fit(
         params = transform(params, params_bijection)
 
     trained_model = nnx.merge(graphdef, params, *static_state)
-    return trained_model
+    return trained_model, history
 
 
 

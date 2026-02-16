@@ -11,26 +11,16 @@ class TrivialCustomComputeEngine(gpx.kernels.computations.AbstractKernelComputat
 
     def _gram(self, kernel, X, X_size):
         lengthscales = kernel.lengthscales
-
         weights = kernel.weights
         return Gram_XX_Trivial_jit(
-            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, weights.value
+            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), weights.get_value()
             )
 
     def _cross_covariance(self, kernel, X, Z, X_size, Z_size):
         lengthscales = kernel.lengthscales
-
         weights = kernel.weights
         return Cross_XZ_Trivial_jit(
-            X, Z, X_size, Z_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, weights.value
-            )
-
-    def _diagonal(self, kernel, X, X_size):
-        lengthscales = kernel.lengthscales
-
-        weights = kernel.weights
-        return Diag_XX_Trivial_jit(
-            X, X_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.value, weights.value
+            X, Z, X_size, Z_size, kernel.n_timesteps, kernel.n_nontrivial_levels, lengthscales.get_value(), weights.get_value()
             )
 
     def gram(self, kernel, X, X_size):
@@ -62,21 +52,28 @@ class TrivialSignatureKernel(gpx.kernels.AbstractKernel):
     def default_weights(self):
         return jnp.ones(self.n_nontrivial_levels+1)
 
+    def reshape3D(self, X):
+        return jnp.reshape(X, (X.shape[0], self.n_dimensions, self.n_timesteps))
+
     def gram(self, X):
         X_size = X.shape[0]
+        X = self.reshape3D(X)
         return psd(Dense(self.compute_engine.gram(self, X, X_size)))
 
     def cross_covariance(self, X, Z):
         X_size = X.shape[0]
         Z_size = Z.shape[0]
+        X = self.reshape3D(X)
+        Z = self.reshape3D(Z)
         return self.compute_engine.cross_covariance(self, X, Z, X_size, Z_size)
 
     def diagonal(self, X):
         X_size = X.shape[0]
+        X = self.reshape3D(X)
         return self.compute_engine.diagonal(self, X, X_size)
 
     def __call__(self, X, Z):
-        raise NotImplementedError("Pointwise kernel evaluation is not implemented.")
+        return 1
 
 
 
@@ -94,7 +91,6 @@ def Gram_XX_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthsca
     XX = jax.lax.dot_general(X, X, dimension_numbers=( ((1,),(1,)), ((),()) ) )
     S = jnp.transpose(XX, (0, 2, 1, 3))
     R = S[:,:,1:,1:] - S[:,:,1:,:-1] - S[:,:,:-1,1:] + S[:,:,:-1,:-1]
-    R = 1e-6* (R - jnp.mean(R))
 
     # Level 0 (Trivial Level)
     level_0 = jnp.expand_dims(jnp.ones((n_X, n_X)), axis=0)
@@ -139,9 +135,13 @@ def Gram_XX_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthsca
     C_final, higher_levels = jax.lax.scan(scan_function, C_initial, xs=jnp.arange(2, n_nontrivial_levels+1))
 
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
+    X_var = diagonal_Trivial_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights) 
+    L = L / (jnp.sqrt(X_var)[:, :, None] * jnp.sqrt(X_var)[:, None, :])
     return jnp.tensordot(weights, L , axes=([0], [0]))
 
 Gram_XX_Trivial_jit = jax.jit(Gram_XX_Trivial, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
+
+
 
 def Cross_XZ_Trivial(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights):
 
@@ -159,7 +159,6 @@ def Cross_XZ_Trivial(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial
     XZ = jax.lax.dot_general(X, Z, dimension_numbers=( ((1,),(1,)), ((),()) ) )
     S = jnp.transpose(XZ, (0, 2, 1, 3))
     R = S[:,:,1:,1:] - S[:,:,1:,:-1] - S[:,:,:-1,1:] + S[:,:,:-1,:-1]
-    R = 1e-6* (R - jnp.mean(R))
 
     # Level 0 (Trivial Level)
     level_0 = jnp.expand_dims(jnp.ones((n_X, n_Z)), axis=0)
@@ -204,11 +203,16 @@ def Cross_XZ_Trivial(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial
     C_final, higher_levels = jax.lax.scan(scan_function, C_initial, xs=jnp.arange(2, n_nontrivial_levels+1))
 
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
+
+    X_var = diagonal_Trivial_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights) + 1e-6
+    Z_var = diagonal_Trivial_jit(Z, Z_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights) + 1e-6
+    L = L / (jnp.sqrt(X_var)[:, :, None] * jnp.sqrt(Z_var)[:, None, :])
+
     return jnp.tensordot(weights, L , axes=([0], [0]))
 
 Cross_XZ_Trivial_jit = jax.jit(Cross_XZ_Trivial, static_argnames=['X_batch_size', 'Z_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
 
-def Diag_XX_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights):
+def diagonal_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, weights):
     n_X = X_batch_size
     T = n_timesteps
 
@@ -222,7 +226,6 @@ def Diag_XX_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthsca
     XX = jax.lax.dot_general(X, X, dimension_numbers=( ((1,),(1,)), ((0,),(0,)) ) )
     S = XX
     R = S[:,1:,1:] - S[:,1:,:-1] - S[:,:-1,1:] + S[:,:-1,:-1]
-    R = 1e-6* (R - jnp.mean(R))
 
     # Level 0 (Trivial Level)
     level_0 = jnp.expand_dims(jnp.ones((n_X)), axis=0)
@@ -266,6 +269,7 @@ def Diag_XX_Trivial(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthsca
     C_initial = C_initial.at[0,0].set(R)
     C_final, higher_levels = jax.lax.scan(scan_function, C_initial, xs=jnp.arange(2, n_nontrivial_levels+1))
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
-    return jnp.tensordot(weights, L , axes=([0], [0]))
 
-Diag_XX_Trivial_jit = jax.jit(Diag_XX_Trivial, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
+    return L 
+
+diagonal_Trivial_jit = jax.jit(diagonal_Trivial, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])

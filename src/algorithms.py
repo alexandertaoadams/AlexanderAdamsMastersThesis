@@ -84,6 +84,9 @@ def Gram_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp
     C_final, higher_levels = jax.lax.scan(scan_function, C_initial, xs=jnp.arange(2, n_nontrivial_levels+1))
 
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
+    X_var = diagonal_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights) 
+    L = L / (jnp.sqrt(X_var)[:, :, None] * jnp.sqrt(X_var)[:, None, :])
+
     return jnp.tensordot(weights, L , axes=([0], [0]))
 
 Gram_XX_jit = jax.jit(Gram_XX, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
@@ -173,11 +176,19 @@ def Cross_XZ(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial_levels,
     C_final, higher_levels = jax.lax.scan(scan_function, C_initial, xs=jnp.arange(2, n_nontrivial_levels+1))
 
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
-    return jnp.tensordot(weights, L , axes=([0], [0]))
+
+    X_var = diagonal_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights) 
+    Z_var = diagonal_jit(Z, Z_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights) 
+    L = L / (jnp.sqrt(X_var)[:, :, None] * jnp.sqrt(Z_var)[:, None, :])
+
+    return jnp.tensordot(weights, L, axes=([0], [0]))
+    
 
 Cross_XZ_jit = jax.jit(Cross_XZ, static_argnames=['X_batch_size', 'Z_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
 
-def Diag_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights):
+
+
+def diagonal(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights):
     """Computes just the diagonal elements of the Gram matrix of the input data and returns the levels separately.
     Args:
         X (X_batch_size, n_dimensions, n_timesteps) = (n_X, D, T): Time series data.
@@ -256,6 +267,8 @@ def Diag_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp
     C_initial = C_initial.at[0,0].set(R)
     C_final, higher_levels = jax.lax.scan(scan_function, C_initial, xs=jnp.arange(2, n_nontrivial_levels+1))
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
-    return jnp.tensordot(weights, L , axes=([0], [0]))
 
-Diag_XX_jit = jax.jit(Diag_XX, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])
+    return L 
+
+
+diagonal_jit = jax.jit(diagonal, static_argnames=['X_batch_size', 'n_timesteps', 'n_nontrivial_levels'])

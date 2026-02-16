@@ -72,7 +72,7 @@ class SignatureKernel(gpx.kernels.AbstractKernel):
 
     def diagonal(self, X):
         X_size = X.shape[0]
-        
         return self.compute_engine.diagonal(self, X, X_size)
+        
     def __call__(self, x, y):
         return 1

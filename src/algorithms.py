@@ -176,10 +176,12 @@ def Cross_XZ(X, Z, X_batch_size, Z_batch_size, n_timesteps, n_nontrivial_levels,
     C_final, higher_levels = jax.lax.scan(scan_function, C_initial, xs=jnp.arange(2, n_nontrivial_levels+1))
 
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
-
-    X_var = diagonal_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights) 
-    Z_var = diagonal_jit(Z, Z_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights) 
-    L = L / (jnp.sqrt(X_var)[:, :, None] * jnp.sqrt(Z_var)[:, None, :])
+    X_var = diagonal_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights)
+    Z_var = diagonal_jit(Z, Z_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights)
+    X_std = jnp.sqrt(X_var)  
+    Z_std = jnp.sqrt(Z_var)  
+    L = L / X_std[..., :, None]   
+    L = L / Z_std[..., None, :] 
 
     return jnp.tensordot(weights, L, axes=([0], [0]))
     

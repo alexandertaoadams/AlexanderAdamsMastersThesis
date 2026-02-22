@@ -84,8 +84,10 @@ def Gram_XX(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp
     C_final, higher_levels = jax.lax.scan(scan_function, C_initial, xs=jnp.arange(2, n_nontrivial_levels+1))
 
     L = jnp.concat([level_0, level_1, higher_levels], axis=0)
-    X_var = diagonal_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights) 
-    L = L / (jnp.sqrt(X_var)[:, :, None] * jnp.sqrt(X_var)[:, None, :])
+    X_var = diagonal_jit(X, X_batch_size, n_timesteps, n_nontrivial_levels, lengthscales, amp, weights)
+    std = jnp.sqrt(X_var)
+    L = L / std[..., :, None]
+    L = L / std[..., None, :]
 
     return jnp.tensordot(weights, L , axes=([0], [0]))
 

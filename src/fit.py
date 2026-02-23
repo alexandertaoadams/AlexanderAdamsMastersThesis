@@ -101,7 +101,7 @@ def timed_fit(
     params_bijection: tp.Union[dict[Parameter, Transform], None] = DEFAULT_BIJECTION,
     trainable=Parameter,
     max_time=300.0,          
-    check_every=100,         
+    check_every=10,         
     seed=42,
     batch_size=-1,
     unroll=1,

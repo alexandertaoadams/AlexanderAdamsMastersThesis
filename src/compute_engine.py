@@ -3,10 +3,6 @@ import gpjax as gpx
 import jax.numpy as jnp
 
 
-
-
-
-
 class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):
     """Custom compute engine class for the signature kernel.
     """

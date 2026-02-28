@@ -1,6 +1,7 @@
 import jax
 import gpjax as gpx
 import jax.numpy as jnp
+from .algorithms import Gram_XX_jit, Cross_XZ_jit
 
 
 class CustomComputeEngine(gpx.kernels.computations.AbstractKernelComputation):

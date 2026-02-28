@@ -1,4 +1,6 @@
-
+import jax
+import gpjax as gpx
+import jax.numpy as jnp
 
 
 
